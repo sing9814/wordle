@@ -4,12 +4,19 @@ import android.util.Log
 import androidx.lifecycle.*
 import com.example.a2_rita.db.MyDatabase
 import com.example.a2_rita.models.Guess
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainActivityViewModel(val db: MyDatabase): ViewModel() {
+
     var currentGuess: LiveData<List<Guess>>
     init {
         Log.d("ABC", "vm is initializing")
         currentGuess = db.getGuessDAO().getAllGuess().asLiveData()
+
+        currentGuess.observeForever { savedGuesses ->
+            guessList.value = savedGuesses.toMutableList()
+        }
     }
 
     //secretWord: A string containing the game’s secret word. Use the word “CABLE”.
@@ -25,6 +32,8 @@ class MainActivityViewModel(val db: MyDatabase): ViewModel() {
 
     //saveGame(): A function that saves the user’s guesses to an appropriate Room database entity
     fun saveGame() {
+//        db.getGuessDAO().deleteAllGuess()
+
         if (guessList.value!!.isNotEmpty()){
             for (i in 0 until guessList.value!!.size){
                 db.getGuessDAO().insert(guessList.value!![i])
@@ -47,8 +56,9 @@ class MainActivityViewModel(val db: MyDatabase): ViewModel() {
             newGuesses.add(guessList.value!![i])
         }
 
-        guessList.value = newGuesses
-        guessList.value!!.add(Guess(1,secretWord, userGuess))
+        val updatedGuesses = guessList.value!!.toMutableList()
+        updatedGuesses.add(Guess(1, secretWord, userGuess))
+        guessList.value = updatedGuesses
 
         //2. Check if the game is over.
         if(userGuess.uppercase() == secretWord.uppercase()){

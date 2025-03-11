@@ -36,7 +36,9 @@ class MainActivity : AppCompatActivity() {
         val guessListObserver = Observer<List<Guess>> {
                 updatedGuessList ->
             Log.d("ABC", "Observer noticed that list of guess changed")
-            guessAdapter.submitList(updatedGuessList)
+            Log.d("ABC", "$updatedGuessList tets")
+//            guessAdapter.submitList(updatedGuessList)
+            guessAdapter.submitList(updatedGuessList.reversed())
         }
 
         model.guessList.observe(this, guessListObserver)
@@ -45,7 +47,9 @@ class MainActivity : AppCompatActivity() {
             isGameOver ->
             if(isGameOver){
                 binding.btnSubmit.isEnabled = false
-                this.binding.txtWinOrLose.text = if (model.isWin) "Win" else "Lose"
+                binding.txtGuess.isEnabled = false
+                binding.btnSave.isEnabled = false
+                this.binding.txtWinOrLose.text = if (model.isWin) "You win!" else "You lose :("
             }else{
                 this.binding.txtWinOrLose.text = ""
             }
@@ -59,8 +63,10 @@ class MainActivity : AppCompatActivity() {
             // validation that mandatory fields were filled in
             if (input.length != 5) {
                 Log.d("ABC-VM", "no.")
+                binding.txtWinOrLose.text = "Input 5 letters"
                 return@setOnClickListener
             }
+            binding.txtWinOrLose.text = ""
             // using the view model, insert it into the DB using your DAO
             model.secretWord(input)
 
@@ -76,6 +82,8 @@ class MainActivity : AppCompatActivity() {
             // using the view model, delete guess from Room database
             model.deleteAll()
             binding.btnSubmit.isEnabled = true
+            binding.txtGuess.isEnabled = true
+            binding.btnSave.isEnabled = true
             binding.txtWinOrLose.text = ""
         }
     }
